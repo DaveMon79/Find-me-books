@@ -4,59 +4,63 @@ const { signToken } = require("../utils/auth");
 
 const resolvers = {
     Query: {
+      // This retrieves all saved books
         me: async (parent, args, context) => {
-       
-            if (context.user) {
-                const user = await User.findOne({ username: context.user.username })
-                .populate("savedBooks").populate("authors")
-
-                return user;
-            }
-            throw new AuthenticationError("Not logged in");
-        },
+          
+          if (context.user) {
+            const userData = await User.findOne({ _id: context.user._id }).select('-__v -password');
+    
+            return userData;
+          }
+    
+          throw new AuthenticationError('Not logged in');
     },
 
-    Mutation: {
+  },
 
+
+    
+
+    Mutation: {
+        // Function tp create a new user in the database
         addUser: async (parent, { username, email, password }) => {
             const user = await User.create({ username, email, password });
             const token = signToken(user);
             return { token, user };
         },
-
-
+       
+        // Function to login to user
         login: async (parent, { email, password }) => {
-            const user = await User.findOne({ email });
-
-            if (!user) {
-                throw new AuthenticationError('No user found with this email address');
-            }
-
-            const correctPw = await user.isCorrectPassword(password);
-
-            if (!correctPw) {
-                throw new AuthenticationError('Incorrect credentials');
-            }
-
-            const token = signToken(user);
-
-            return { token, user };
+          const user = await User.findOne({ email });
+    
+          if (!user) {
+            throw new AuthenticationError("No user found with this email address");
+          }
+    
+          const correctPw = await user.isCorrectPassword(password);
+    
+          if (!correctPw) {
+            throw new AuthenticationError("Incorrect credentials");
+          }
+    
+          const token = signToken(user);
+    
+          return { token, user };
         },
 
-        saveBook: async (parent, { input }, context) => {
-            if (context.user) {
-                const updatedUser = await User.findOneAndUpdate(
-                    { _id: context.user._id },
-                    { $addToSet: { savedBooks: input } },
-                    { new: true }
-                );
-                return updatedUser;
-            }
-
-            throw new AuthenticationError("You need to be logged in!");
+        // Function to save a book to the database
+        saveBook: async (parent, { book }, context) => {
+          if (context.user) {
+            const updatedUser = await User.findOneAndUpdate(
+              { _id: context.user._id },
+              { $addToSet: { savedBooks: book } },
+              { new: true }
+            );
+            return updatedUser;
+          }
         },
 
-
+        // Function to remoove a book frpm the database
         removeBook: async (parent, { bookId }, context) => {
             if (context.user) {
                 const updatedUser = await User.findOneAndUpdate(

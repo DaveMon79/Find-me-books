@@ -5,12 +5,6 @@ import Auth from '../utils/auth';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
 import { SAVE_BOOK } from '../utils/mutations';
 
-// SearchBooks.js:
-
-// Use the Apollo useMutation() Hook to execute the SAVE_BOOK mutation in the handleSaveBook() 
-// function instead of the saveBook() function imported from the API file.
-
-// Make sure you keep the logic for saving the book's ID to state in the try...catch block!
 
 const SearchBooks = () => {
   // create state for holding returned google api data
@@ -38,6 +32,7 @@ const SearchBooks = () => {
       return false;
     }
 
+    // API call made for using user book search input
     try {
       const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${searchInput}`)
 
@@ -64,33 +59,28 @@ const SearchBooks = () => {
 
   // create function to handle saving a book to our database
   const handleSaveBook = async (bookId) => {
-
-    // find the book in `searchedBooks` state by the matching id
+   
     const bookToSave = searchedBooks.find((book) => book.bookId === bookId);
 
-    // get token
     const token = Auth.loggedIn() ? Auth.getToken() : null;
 
     if (!token) {
       return false;
+      
     }
 
+    // Savebook muation called
     try {
-      const { data } = await saveBook({ 
-        variables: {
-          input: {
-            ...bookToSave
-          }
-        }
-      })
-
-
-      // if book successfully saves to user's account, save book id to state
+      const { data } = await saveBook({
+        variables: { book: { ...bookToSave } },
+      });
+      console.log(savedBookIds);
       setSavedBookIds([...savedBookIds, bookToSave.bookId]);
     } catch (err) {
       console.error(err);
     }
-  };
+  }
+
 
   return (
     <>

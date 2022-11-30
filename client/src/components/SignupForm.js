@@ -12,6 +12,7 @@ const SignupForm = () => {
   // set state for alert
   const [showAlert, setShowAlert] = useState(false);
 
+  // Sign up user muation created
   const [addUser] = useMutation(ADD_USER);
 
 
@@ -32,6 +33,7 @@ const SignupForm = () => {
       event.stopPropagation();
     }
 
+    // Signup user mutation called
     try {
       const { data } = await addUser({
         variables: { ...userFormData }
